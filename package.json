@@ -1,0 +1,9 @@
+{
+  "name": "course-follow-up-delay",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-strip-types src/course_follow_up.ts"
+  }
+}

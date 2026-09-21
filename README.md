@@ -1,6 +1,6 @@
 # Schedule a course follow-up a few hours later
 
-When a learner leaves a marketplace course with a question unanswered, you want to schedule a follow-up for their next likely study window instead of letting that useful teaching moment slip away. This small TypeScript script registers that future webhook with Infrai through one plain REST call, so the same `INFRAI_API_KEY` can stay with the rest of a learning product's infrastructure. The core idea is simple: you don't need a separate cron service or a background job runner; you just tell Infrai when to fire and what to call.
+When a learner leaves a marketplace course with a question unanswered, schedule the follow-up for their next likely study window rather than letting that useful teaching moment drift away. This small TypeScript script registers that future webhook with Infrai through one plain REST call, so the same `INFRAI_API_KEY` can stay with the rest of a learning product's infrastructure.
 
 ## Run the teaching nudge
 
@@ -32,11 +32,11 @@ npm run start
 
 ## The one gotcha worth teaching
 
-The cron expression is expressed in UTC. Keep the learner-facing message time-zone aware at the webhook endpoint, where the course application already knows the learner's preferred study time. If you schedule in UTC but send the message in the learner's local morning, you'll wake someone up at 3 AM their time. That's a bad look for a teaching tool.
+The cron expression is expressed in UTC. Keep the learner-facing message time-zone aware at the webhook endpoint, where the course application already knows the learner's preferred study time.
 
 ## What the small client handles
 
-Every request sets its HTTP method and reads Infrai's `{ ok, data, error, metadata }` envelope. A throttled request waits with exponential backoff, using `Retry-After` when present; the stable idempotency key means retrying the scheduling request keeps one intended follow-up. The retry logic matters more than it might seem: network blips happen, and without idempotency you could end up with three follow-ups for one question.
+Every request sets its HTTP method and reads Infrai's `{ ok, data, error, metadata }` envelope. A throttled request waits with exponential backoff, using `Retry-After` when present; the stable idempotency key means retrying the scheduling request keeps one intended follow-up.
 
 ## License
 
@@ -53,3 +53,8 @@ That's the minimal version. Before running this for real: The details below appl
 **Course Follow Up Delay: Scheduled / background work**
 - **Course Follow Up Delay:** Server-side jobs keep running and **consuming credit** — monitor `GET /v1/account/usage` and set an auto-recharge threshold.
 - **Course Follow Up Delay:** Make handlers idempotent and use the queue's ack/retry so a redelivery doesn't double-process.
+
+## Common questions
+
+**Why is there no client library in the dependencies?**  
+One is not needed: `cron.create` is a single HTTPS call inside `src/infrai_client.ts`, and `npx tsx` is the only tooling involved. For a course follow up example that is the entire dependency story.
